@@ -1,33 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import axios from 'axios';
-
+import { NavLink } from 'react-router-dom';
 import PlayerCard from './PlayerCard';
 
-const PlayerList = props => {
-  const [players, setPlayers] = useState([])
-  console.log(players)
-  useEffect(() => {
-    const getPlayers = () => {
-      axios
-        .get('http://localhost:5000/api/players/')
-        .then(response => {
-          setPlayers(response.data);
-        })
-        .catch(error => {
-          console.error('Server Error', error);
-        });
-    }
-    
-    getPlayers();
-  }, []);
-  
-  return (
-    <div className="player-list">
-      {players.map(player => (
-        <PlayerCard key={player.id} player={player} />
-      ))}
-    </div>
-  );
+export default class PlayerList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      players: []
+    };
+  }
+
+  componentDidMount() {
+    axios
+      .get('http://localhost:5000/api/players')
+      .then(response => {
+        this.setState(() => ({ players: response.data }));
+      })
+      .catch(error => {
+        console.error('Server Error', error);
+      });
+  }
+
+  render() {
+    return (
+      <div className="player-list">
+        {this.state.players.map(player => (
+          <PlayerDetails key={player.id} player={player} />
+        ))}
+      </div>
+    );
+  }
 }
 
-export default PlayerList;
+function PlayerDetails({ player }) {
+  const { id } = player;
+  return (
+    <NavLink to={`/players/${id}`}>
+      <PlayerCard player={player} />
+    </NavLink>
+  );
+}

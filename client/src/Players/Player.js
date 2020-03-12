@@ -1,48 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import axios from 'axios';
-
 import PlayerCard from './PlayerCard';
 
-const Player = (props) => {
-  const [player, setPlayer] = useState({});
-  const id = props.match.params.id;
-  
-  useEffect(() => {
-    
-
-       axios
-        .get(`http://localhost:5000/api/players/${id}`)
-        .then(response => {
-          setPlayer(response.data);
-        })
-        .catch(error => {
-          console.error(error);
-        });
-
-  },[id]);
-  
- 
-
-  if (!player) {
-    return <div>Loading player information...</div>;
+export default class Player extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      player: null
+    };
   }
 
-  const { name, country } = player;
-  return (
-    <div className="save-wrapper">
-      <div className="player-card">
-        <h2>{name}</h2>
-        <div className="player-name">
-          Player: <em>{name}</em>
-        </div>
-        <div className="player-country">
-          Country: <strong>{country}</strong>
-        </div>
-        
-      </div>
-      <div className="save-button">Save</div>
-    </div>
-  );
-}
+  componentDidMount() {
+    // change this line to grab the id passed on the URL
+    const { id } = this.props.match.params;
+    this.fetchPlayer(id);
+  }
 
-export default Player;
+  fetchPlayer = id => {
+    axios
+      .get(`http://localhost:5000/api/players/${id}`)
+      .then(response => {
+        this.setState(() => ({ player: response.data }));
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
+  // Uncomment this code when you're ready for the stretch problems
+  // componentWillReceiveProps(newProps) {
+  //   if (this.props.match.params.id !== newProps.match.params.id) {
+  //     this.fetchMovie(newProps.match.params.id);
+  //   }
+  // }
+
+  savePlayer = () => {
+    const addToSavedList = this.props.addToSavedList;
+    addToSavedList(this.state.player);
+  };
+
+  render() {
+    if (!this.state.player) {
+      return <div>Loading player information...</div>;
+    }
+
+    const { player } = this.state;
+    return (
+      <div className="save-wrapper">
+        <PlayerCard player={player} />
+        <div className="save-button" onClick={() => this.savePlayer()}>
+          Save
+        </div>
+      </div>
+    );
+  }
+}
